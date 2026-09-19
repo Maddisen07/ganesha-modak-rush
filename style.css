@@ -848,15 +848,29 @@ footer {
         display: none;
     }
 
+    .game-section {
+        margin-bottom: 0;
+    }
+
     .screen {
-        padding: 8px;
+        padding: 10px 8px;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        align-items: start;
     }
 
     .card {
         width: min(94%, 430px);
-        max-height: 94%;
+        max-height: none;
+        margin: 0 auto;
         padding: 16px 12px;
         border-radius: 19px;
+    }
+
+    #startScreen .card {
+        min-height: 0;
+        margin-top: 2px;
+        margin-bottom: 10px;
     }
 
     .ganesha-icon {
