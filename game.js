@@ -139,10 +139,12 @@ function setLeaderboardStatus(message) {
 }
 
 function getEnteredPlayerName() {
-    return (playerNameInput?.value || "")
+    const entered = (playerNameInput?.value || "")
         .trim()
         .replace(/\s+/g, " ")
         .slice(0, 20);
+
+    return entered || "Modak Player";
 }
 
 function escapeLeaderboardName(name) {
