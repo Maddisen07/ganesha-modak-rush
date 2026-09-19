@@ -683,19 +683,20 @@ footer {
 
 
 /* ============================================
-   FINAL MOBILE LAYOUT
+   MOBILE GAMEPLAY POLISH — FINAL
    ============================================ */
 
 @media (max-width: 599px) {
     html, body {
-        margin: 0;
         width: 100%;
         min-height: 100%;
+        margin: 0;
+        padding: 0;
         overflow-x: hidden;
     }
 
     body {
-        overscroll-behavior: none;
+        overscroll-behavior-y: none;
     }
 
     .app {
@@ -708,8 +709,6 @@ footer {
     }
 
     header {
-        display: flex;
-        flex-direction: column;
         gap: 4px;
         padding: 3px 0 7px;
         text-align: center;
@@ -733,7 +732,6 @@ footer {
 
     header p {
         font-size: 10px;
-        margin-top: 2px;
     }
 
     .festival-badge {
@@ -742,7 +740,7 @@ footer {
         font-size: 9px;
     }
 
-    /* Mobile HUD: 3 cards + 2 cards */
+    /* 3 stats on row 1, 2 stats on row 2 */
     .hud {
         display: grid;
         grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -787,11 +785,10 @@ footer {
         line-height: 16px;
     }
 
-    /* Game fills the available width without creating a huge page */
     .game-wrapper {
         width: 100%;
-        aspect-ratio: 1000 / 620;
         height: auto;
+        aspect-ratio: 1000 / 620;
         border-radius: 14px;
         overflow: hidden;
     }
@@ -803,8 +800,8 @@ footer {
         max-width: none !important;
         margin: 0 !important;
         touch-action: none;
-        user-select: none;
         -webkit-user-select: none;
+        user-select: none;
         -webkit-touch-callout: none;
     }
 
@@ -906,12 +903,30 @@ footer {
     }
 
     .player-profile {
+        width: 100%;
         margin: 10px auto 7px;
     }
 
     .player-profile input {
         min-height: 43px;
         font-size: 15px;
+    }
+
+    .leaderboard-panel {
+        display: block !important;
+        width: 100%;
+        margin: 10px auto 0;
+        padding: 10px;
+    }
+
+    .leaderboard-list {
+        max-height: 170px;
+        overflow-y: auto;
+    }
+
+    .leaderboard-row {
+        min-height: 32px;
+        padding: 5px 6px;
     }
 
     #startButton,
@@ -926,11 +941,6 @@ footer {
     .tip {
         font-size: 9px;
         margin: 4px 0;
-    }
-
-    .leaderboard-panel {
-        margin-top: 10px;
-        padding: 10px;
     }
 }
 
