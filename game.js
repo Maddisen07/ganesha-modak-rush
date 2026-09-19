@@ -3338,75 +3338,100 @@ function stopFestivalMusic() {
 // ============================================
 // MOBILE TOUCH / DRAG CONTROL
 // ============================================
-
+// On phones, directly drag Ganesha with your finger. This is more
+// reliable than simulating keyboard keys and works with fast swipes too.
 let pointerActive = false;
-let pointerStartX = 0;
+let lastPointerX = null;
+let pointerMoved = false;
 
-function setPlayerFromScreenX(clientX) {
+function updatePlayerFromPointer(clientX) {
     if (!gameRunning || gamePaused || roundTransitionActive) return;
 
     const rect = canvas.getBoundingClientRect();
     if (!rect.width) return;
 
     const canvasX = (clientX - rect.left) * (canvas.width / rect.width);
-
     player.x = Math.max(
         0,
         Math.min(canvas.width - player.width, canvasX - player.width / 2)
     );
 }
 
-canvas.addEventListener("pointerdown", (event) => {
+function beginPointerControl(event) {
     if (!gameRunning || gamePaused || roundTransitionActive) return;
 
     pointerActive = true;
-    pointerStartX = event.clientX;
+    pointerMoved = false;
+    lastPointerX = event.clientX;
+    updatePlayerFromPointer(event.clientX);
 
-    try {
-        canvas.setPointerCapture(event.pointerId);
-    } catch (_) {}
-
-    setPlayerFromScreenX(event.clientX);
-    event.preventDefault();
-}, { passive: false });
-
-canvas.addEventListener("pointermove", (event) => {
-    if (!pointerActive) return;
-
-    setPlayerFromScreenX(event.clientX);
-    event.preventDefault();
-}, { passive: false });
-
-canvas.addEventListener("pointerup", (event) => {
-    if (!pointerActive) return;
-
-    const dx = event.clientX - pointerStartX;
-
-    // A swipe gives an extra nudge so short swipes are still useful.
-    if (gameRunning && !gamePaused && Math.abs(dx) >= 35) {
-        const nudge = Math.min(180, Math.max(70, Math.abs(dx) * 1.25));
-        player.x += dx > 0 ? nudge : -nudge;
-
-        player.x = Math.max(
-            0,
-            Math.min(canvas.width - player.width, player.x)
-        );
+    if (canvas.setPointerCapture && event.pointerId !== undefined) {
+        try { canvas.setPointerCapture(event.pointerId); } catch (_) {}
     }
-
-    pointerActive = false;
-
-    try {
-        canvas.releasePointerCapture(event.pointerId);
-    } catch (_) {}
-
     event.preventDefault();
-}, { passive: false });
+}
 
-canvas.addEventListener("pointercancel", () => {
+function movePointerControl(event) {
+    if (!pointerActive || !gameRunning || gamePaused) return;
+
+    const dx = event.clientX - lastPointerX;
+    if (Math.abs(dx) > 1) pointerMoved = true;
+
+    // Direct dragging: Ganesha follows the finger.
+    updatePlayerFromPointer(event.clientX);
+    lastPointerX = event.clientX;
+    event.preventDefault();
+}
+
+function endPointerControl(event) {
+    if (!pointerActive) return;
+
     pointerActive = false;
-}, { passive: true });
+    lastPointerX = null;
 
-function startGame() {
+    if (canvas.releasePointerCapture && event.pointerId !== undefined) {
+        try { canvas.releasePointerCapture(event.pointerId); } catch (_) {}
+    }
+    event.preventDefault();
+}
+
+if (window.PointerEvent) {
+    canvas.addEventListener("pointerdown", beginPointerControl, { passive: false });
+    canvas.addEventListener("pointermove", movePointerControl, { passive: false });
+    canvas.addEventListener("pointerup", endPointerControl, { passive: false });
+    canvas.addEventListener("pointercancel", endPointerControl, { passive: false });
+    canvas.addEventListener("pointerleave", (event) => {
+        if (event.pointerType === "mouse") endPointerControl(event);
+    }, { passive: false });
+} else {
+    // Fallback for older mobile browsers.
+    canvas.addEventListener("touchstart", (event) => {
+        if (!event.touches[0]) return;
+        beginPointerControl({
+            clientX: event.touches[0].clientX,
+            pointerId: 0,
+            preventDefault: () => event.preventDefault()
+        });
+    }, { passive: false });
+
+    canvas.addEventListener("touchmove", (event) => {
+        if (!event.touches[0]) return;
+        movePointerControl({
+            clientX: event.touches[0].clientX,
+            pointerId: 0,
+            preventDefault: () => event.preventDefault()
+        });
+    }, { passive: false });
+
+    canvas.addEventListener("touchend", (event) => {
+        endPointerControl({
+            pointerId: 0,
+            preventDefault: () => event.preventDefault()
+        });
+    }, { passive: false });
+}
+
+async function startGame() {
     const enteredName = getEnteredPlayerName();
 
     if (!enteredName) {
