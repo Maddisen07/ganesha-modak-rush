@@ -36,9 +36,11 @@ canvas.height = 620;
 function resizeGameCanvas() {
     const wrapper = canvas.parentElement;
     if (!wrapper) return;
+
     const maxWidth = Math.min(wrapper.clientWidth || 1000, 1000);
     const scale = maxWidth / 1000;
-    canvas.style.width = `${maxWidth}px`;
+
+    canvas.style.width = "100%";
     canvas.style.height = `${620 * scale}px`;
 }
 window.addEventListener("resize", resizeGameCanvas);
@@ -3336,13 +3338,11 @@ function stopFestivalMusic() {
 // ============================================
 // MOBILE TOUCH / DRAG CONTROL
 // ============================================
-// Ganesha follows the user's finger. A horizontal swipe also nudges
-// Ganesha in the swipe direction, making mobile control responsive.
-let pointerActive = false;
-let lastPointerX = null;
-let swipeStartX = null;
 
-function updatePlayerFromPointer(clientX) {
+let pointerActive = false;
+let pointerStartX = 0;
+
+function setPlayerFromScreenX(clientX) {
     if (!gameRunning || gamePaused || roundTransitionActive) return;
 
     const rect = canvas.getBoundingClientRect();
@@ -3356,49 +3356,36 @@ function updatePlayerFromPointer(clientX) {
     );
 }
 
-function beginPointerControl(event) {
+canvas.addEventListener("pointerdown", (event) => {
     if (!gameRunning || gamePaused || roundTransitionActive) return;
 
     pointerActive = true;
-    lastPointerX = event.clientX;
-    swipeStartX = event.clientX;
+    pointerStartX = event.clientX;
 
-    updatePlayerFromPointer(event.clientX);
+    try {
+        canvas.setPointerCapture(event.pointerId);
+    } catch (_) {}
 
-    if (canvas.setPointerCapture && event.pointerId !== undefined) {
-        try {
-            canvas.setPointerCapture(event.pointerId);
-        } catch (_) {}
-    }
-
+    setPlayerFromScreenX(event.clientX);
     event.preventDefault();
-}
+}, { passive: false });
 
-function movePointerControl(event) {
-    if (!pointerActive || !gameRunning || gamePaused) return;
-
-    updatePlayerFromPointer(event.clientX);
-    lastPointerX = event.clientX;
-
-    event.preventDefault();
-}
-
-function endPointerControl(event) {
+canvas.addEventListener("pointermove", (event) => {
     if (!pointerActive) return;
 
-    const endX = event.clientX ?? lastPointerX ?? swipeStartX ?? 0;
-    const startX = swipeStartX ?? endX;
-    const swipeDistance = endX - startX;
+    setPlayerFromScreenX(event.clientX);
+    event.preventDefault();
+}, { passive: false });
 
-    // Horizontal swipe fallback: move a short, predictable distance.
-    if (gameRunning && !gamePaused && Math.abs(swipeDistance) >= 35) {
-        const nudge = Math.min(180, Math.max(70, Math.abs(swipeDistance) * 1.25));
+canvas.addEventListener("pointerup", (event) => {
+    if (!pointerActive) return;
 
-        if (swipeDistance > 0) {
-            player.x += nudge;
-        } else {
-            player.x -= nudge;
-        }
+    const dx = event.clientX - pointerStartX;
+
+    // A swipe gives an extra nudge so short swipes are still useful.
+    if (gameRunning && !gamePaused && Math.abs(dx) >= 35) {
+        const nudge = Math.min(180, Math.max(70, Math.abs(dx) * 1.25));
+        player.x += dx > 0 ? nudge : -nudge;
 
         player.x = Math.max(
             0,
@@ -3407,60 +3394,19 @@ function endPointerControl(event) {
     }
 
     pointerActive = false;
-    lastPointerX = null;
-    swipeStartX = null;
 
-    if (canvas.releasePointerCapture && event.pointerId !== undefined) {
-        try {
-            canvas.releasePointerCapture(event.pointerId);
-        } catch (_) {}
-    }
+    try {
+        canvas.releasePointerCapture(event.pointerId);
+    } catch (_) {}
 
     event.preventDefault();
-}
+}, { passive: false });
 
-// Pointer Events cover modern Android Chrome, iOS Safari and desktop.
-if (window.PointerEvent) {
-    canvas.addEventListener("pointerdown", beginPointerControl, { passive: false });
-    canvas.addEventListener("pointermove", movePointerControl, { passive: false });
-    canvas.addEventListener("pointerup", endPointerControl, { passive: false });
-    canvas.addEventListener("pointercancel", endPointerControl, { passive: false });
-} else {
-    // Fallback for older mobile browsers.
-    canvas.addEventListener("touchstart", (event) => {
-        const touch = event.touches[0];
-        if (!touch) return;
+canvas.addEventListener("pointercancel", () => {
+    pointerActive = false;
+}, { passive: true });
 
-        beginPointerControl({
-            clientX: touch.clientX,
-            pointerId: 0,
-            preventDefault: () => event.preventDefault()
-        });
-    }, { passive: false });
-
-    canvas.addEventListener("touchmove", (event) => {
-        const touch = event.touches[0];
-        if (!touch) return;
-
-        movePointerControl({
-            clientX: touch.clientX,
-            pointerId: 0,
-            preventDefault: () => event.preventDefault()
-        });
-    }, { passive: false });
-
-    canvas.addEventListener("touchend", (event) => {
-        const touch = event.changedTouches[0];
-
-        endPointerControl({
-            clientX: touch?.clientX ?? lastPointerX ?? swipeStartX ?? 0,
-            pointerId: 0,
-            preventDefault: () => event.preventDefault()
-        });
-    }, { passive: false });
-}
-
-async function startGame() {
+function startGame() {
     const enteredName = getEnteredPlayerName();
 
     if (!enteredName) {
