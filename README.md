@@ -36,6 +36,8 @@ Anonymous sessions persist in browser storage. Clearing site data creates a new 
 ## Important
 Client-side games cannot be completely cheat-proof. A determined user can alter browser JavaScript/network requests and submit a fake score. For strict contest anti-cheat, score submission should be validated by a trusted server/Edge Function.
 
+mobile ui edited
+
 Official Supabase docs:
 https://supabase.com/docs/reference/javascript/installing
 https://supabase.com/docs/reference/javascript/auth-signinanonymously
