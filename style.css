@@ -710,15 +710,15 @@ footer {
 
     header {
         gap: 4px;
-        padding: 3px 0 7px;
-        text-align: center;
+        padding: 2px 0 6px;
+        text-align: left;
         align-items: center;
     }
 
     .brand {
         width: 100%;
         justify-content: center;
-        gap: 6px;
+        gap: 8px;
     }
 
     .brand-icon {
@@ -732,26 +732,26 @@ footer {
 
     header p {
         font-size: 10px;
+        margin: 0;
     }
 
+    /* Saves vertical space so the play area can be as tall as possible */
     .festival-badge {
-        align-self: center;
-        padding: 6px 10px;
-        font-size: 9px;
+        display: none;
     }
 
-    /* 3 stats on row 1, 2 stats on row 2 */
+    /* All 5 stats on a single compact row */
     .hud {
         display: grid;
-        grid-template-columns: repeat(6, minmax(0, 1fr));
-        gap: 6px;
-        margin: 2px 0 8px;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 5px;
+        margin: 2px 0 6px;
     }
 
     .stat {
         min-width: 0;
-        min-height: 54px;
-        padding: 5px 2px;
+        min-height: 50px;
+        padding: 4px 1px;
         border-radius: 12px;
         flex-direction: column;
         justify-content: center;
@@ -759,36 +759,29 @@ footer {
         gap: 1px;
     }
 
-    .stat:nth-child(1),
-    .stat:nth-child(2),
-    .stat:nth-child(3) {
-        grid-column: span 2;
-    }
-
-    .stat:nth-child(4),
-    .stat:nth-child(5) {
-        grid-column: span 3;
+    .stat > div {
+        text-align: center;
     }
 
     .stat > span {
-        font-size: 16px;
-        line-height: 17px;
+        font-size: 15px;
+        line-height: 16px;
     }
 
     .stat small {
         font-size: 7px;
-        line-height: 9px;
+        line-height: 8px;
     }
 
     .stat strong {
         font-size: 14px;
-        line-height: 16px;
+        line-height: 15px;
     }
 
     .game-wrapper {
         width: 100%;
         height: auto;
-        aspect-ratio: 1000 / 620;
+        aspect-ratio: 600 / 860; /* JS sets the exact ratio to fit the screen */
         border-radius: 14px;
         overflow: hidden;
     }
@@ -832,7 +825,7 @@ footer {
     }
 
     .mobile-controls button {
-        min-height: 54px;
+        min-height: 52px;
         border-radius: 14px;
         font-size: 24px;
         touch-action: manipulation;
@@ -856,74 +849,11 @@ footer {
         padding: 10px 8px;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
-        align-items: start;
-    }
-
-    /* Start menu is a full-screen mobile sheet, not clipped by the canvas wrapper. */
-    #startScreen {
-        position: fixed;
-        inset: 0;
-        z-index: 1000;
-        width: 100vw;
-        height: 100dvh;
-        min-height: 100dvh;
-        padding: 12px 8px;
-        overflow-y: auto;
-        align-items: flex-start;
-        justify-items: center;
-        background: rgba(74,39,17,.48);
-        backdrop-filter: blur(7px);
-        -webkit-overflow-scrolling: touch;
-    }
-
-    #startScreen .card {
-        width: min(94vw, 430px);
-        max-height: calc(100dvh - 24px);
-        overflow-y: auto;
-        margin: 0 auto;
-        padding: 16px 12px 14px;
-    }
-
-    #startScreen .ganesha-icon {
-        font-size: 42px;
-    }
-
-    #startScreen .om-symbol {
-        font-size: 21px;
-    }
-
-    #startScreen .card h2 {
-        font-size: 22px;
-        margin: 4px 0 6px;
-    }
-
-    #startScreen .card > p {
-        margin: 0 0 8px;
-    }
-
-    #startScreen .instructions {
-        margin: 8px 0;
-    }
-
-    #startScreen .level-preview,
-    #startScreen .game-guide {
-        margin-top: 7px;
-    }
-
-    #startScreen .player-profile {
-        margin-top: 9px;
-    }
-
-    #startScreen .leaderboard-panel {
-        margin-top: 9px;
-    }
-
-    #startScreen .tip {
-        margin: 5px 0 0;
+        place-items: start center;
     }
 
     .card {
-        width: min(94%, 430px);
+        width: min(96%, 430px);
         max-height: none;
         margin: 0 auto;
         padding: 16px 12px;
@@ -1031,11 +961,11 @@ footer {
     }
 
     .stat {
-        min-height: 49px;
+        min-height: 46px;
     }
 
     .stat > span {
-        font-size: 14px;
+        font-size: 13px;
     }
 
     .stat strong {
@@ -1049,35 +979,11 @@ footer {
 }
 
 
-@media (max-width: 599px) {
-    .app {
-        max-width: 520px;
-    }
-
-    header {
-        padding-bottom: 5px;
-    }
-
-    .brand-icon {
-        line-height: 1;
-    }
-
-    .festival-badge {
-        margin-top: 1px;
-    }
-
-    .game-wrapper {
-        border-radius: 16px;
-        box-shadow: 0 7px 22px rgba(91,57,36,.18);
-    }
-
-    .mobile-controls {
-        margin-top: 8px;
-        margin-bottom: 0;
-    }
-
-    .mobile-controls button {
-        min-height: 56px;
-        font-weight: 900;
-    }
+/* Hide the in-game pause button while a menu / overlay is open */
+.game-wrapper:has(#startScreen:not(.hidden)) .game-controls,
+.game-wrapper:has(#gameOverScreen:not(.hidden)) .game-controls,
+.game-wrapper:has(#leaderboardOverlay:not(.hidden)) .game-controls,
+.game-wrapper:has(#pauseScreen:not(.hidden)) .game-controls,
+.game-wrapper:has(#exitConfirm:not(.hidden)) .game-controls {
+    display: none;
 }
