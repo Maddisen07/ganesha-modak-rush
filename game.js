@@ -3334,35 +3334,100 @@ function stopFestivalMusic() {
 
 
 // ============================================
-// MOBILE TOUCH / SWIPE CONTROL
+// MOBILE TOUCH / DRAG CONTROL
 // ============================================
+// On phones, directly drag Ganesha with your finger. This is more
+// reliable than simulating keyboard keys and works with fast swipes too.
+let pointerActive = false;
+let lastPointerX = null;
+let pointerMoved = false;
 
-let touchStartX = null;
+function updatePlayerFromPointer(clientX) {
+    if (!gameRunning || gamePaused || roundTransitionActive) return;
 
-canvas.addEventListener("touchstart", (event) => {
-    if (!gameRunning || gamePaused) return;
-    touchStartX = event.touches[0].clientX;
-}, { passive: true });
+    const rect = canvas.getBoundingClientRect();
+    if (!rect.width) return;
 
-canvas.addEventListener("touchmove", (event) => {
-    if (!gameRunning || gamePaused || touchStartX === null) return;
+    const canvasX = (clientX - rect.left) * (canvas.width / rect.width);
+    player.x = Math.max(
+        0,
+        Math.min(canvas.width - player.width, canvasX - player.width / 2)
+    );
+}
 
-    const x = event.touches[0].clientX;
-    const dx = x - touchStartX;
+function beginPointerControl(event) {
+    if (!gameRunning || gamePaused || roundTransitionActive) return;
 
-    if (Math.abs(dx) > 18) {
-        if (dx > 0 && typeof movePlayerRight === "function") {
-            movePlayerRight();
-        } else if (dx < 0 && typeof movePlayerLeft === "function") {
-            movePlayerLeft();
-        }
-        touchStartX = x;
+    pointerActive = true;
+    pointerMoved = false;
+    lastPointerX = event.clientX;
+    updatePlayerFromPointer(event.clientX);
+
+    if (canvas.setPointerCapture && event.pointerId !== undefined) {
+        try { canvas.setPointerCapture(event.pointerId); } catch (_) {}
     }
-}, { passive: true });
+    event.preventDefault();
+}
 
-canvas.addEventListener("touchend", () => {
-    touchStartX = null;
-}, { passive: true });
+function movePointerControl(event) {
+    if (!pointerActive || !gameRunning || gamePaused) return;
+
+    const dx = event.clientX - lastPointerX;
+    if (Math.abs(dx) > 1) pointerMoved = true;
+
+    // Direct dragging: Ganesha follows the finger.
+    updatePlayerFromPointer(event.clientX);
+    lastPointerX = event.clientX;
+    event.preventDefault();
+}
+
+function endPointerControl(event) {
+    if (!pointerActive) return;
+
+    pointerActive = false;
+    lastPointerX = null;
+
+    if (canvas.releasePointerCapture && event.pointerId !== undefined) {
+        try { canvas.releasePointerCapture(event.pointerId); } catch (_) {}
+    }
+    event.preventDefault();
+}
+
+if (window.PointerEvent) {
+    canvas.addEventListener("pointerdown", beginPointerControl, { passive: false });
+    canvas.addEventListener("pointermove", movePointerControl, { passive: false });
+    canvas.addEventListener("pointerup", endPointerControl, { passive: false });
+    canvas.addEventListener("pointercancel", endPointerControl, { passive: false });
+    canvas.addEventListener("pointerleave", (event) => {
+        if (event.pointerType === "mouse") endPointerControl(event);
+    }, { passive: false });
+} else {
+    // Fallback for older mobile browsers.
+    canvas.addEventListener("touchstart", (event) => {
+        if (!event.touches[0]) return;
+        beginPointerControl({
+            clientX: event.touches[0].clientX,
+            pointerId: 0,
+            preventDefault: () => event.preventDefault()
+        });
+    }, { passive: false });
+
+    canvas.addEventListener("touchmove", (event) => {
+        if (!event.touches[0]) return;
+        movePointerControl({
+            clientX: event.touches[0].clientX,
+            pointerId: 0,
+            preventDefault: () => event.preventDefault()
+        });
+    }, { passive: false });
+
+    canvas.addEventListener("touchend", (event) => {
+        endPointerControl({
+            pointerId: 0,
+            preventDefault: () => event.preventDefault()
+        });
+    }, { passive: false });
+}
 
 async function startGame() {
     const enteredName = getEnteredPlayerName();
