@@ -859,6 +859,69 @@ footer {
         align-items: start;
     }
 
+    /* Start menu is a full-screen mobile sheet, not clipped by the canvas wrapper. */
+    #startScreen {
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        width: 100vw;
+        height: 100dvh;
+        min-height: 100dvh;
+        padding: 12px 8px;
+        overflow-y: auto;
+        align-items: flex-start;
+        justify-items: center;
+        background: rgba(74,39,17,.48);
+        backdrop-filter: blur(7px);
+        -webkit-overflow-scrolling: touch;
+    }
+
+    #startScreen .card {
+        width: min(94vw, 430px);
+        max-height: calc(100dvh - 24px);
+        overflow-y: auto;
+        margin: 0 auto;
+        padding: 16px 12px 14px;
+    }
+
+    #startScreen .ganesha-icon {
+        font-size: 42px;
+    }
+
+    #startScreen .om-symbol {
+        font-size: 21px;
+    }
+
+    #startScreen .card h2 {
+        font-size: 22px;
+        margin: 4px 0 6px;
+    }
+
+    #startScreen .card > p {
+        margin: 0 0 8px;
+    }
+
+    #startScreen .instructions {
+        margin: 8px 0;
+    }
+
+    #startScreen .level-preview,
+    #startScreen .game-guide {
+        margin-top: 7px;
+    }
+
+    #startScreen .player-profile {
+        margin-top: 9px;
+    }
+
+    #startScreen .leaderboard-panel {
+        margin-top: 9px;
+    }
+
+    #startScreen .tip {
+        margin: 5px 0 0;
+    }
+
     .card {
         width: min(94%, 430px);
         max-height: none;
@@ -982,5 +1045,39 @@ footer {
     .mobile-controls button {
         min-height: 50px;
         font-size: 22px;
+    }
+}
+
+
+@media (max-width: 599px) {
+    .app {
+        max-width: 520px;
+    }
+
+    header {
+        padding-bottom: 5px;
+    }
+
+    .brand-icon {
+        line-height: 1;
+    }
+
+    .festival-badge {
+        margin-top: 1px;
+    }
+
+    .game-wrapper {
+        border-radius: 16px;
+        box-shadow: 0 7px 22px rgba(91,57,36,.18);
+    }
+
+    .mobile-controls {
+        margin-top: 8px;
+        margin-bottom: 0;
+    }
+
+    .mobile-controls button {
+        min-height: 56px;
+        font-weight: 900;
     }
 }
