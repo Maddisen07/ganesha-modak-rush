@@ -33,18 +33,67 @@ const cancelExit = document.getElementById("cancelExit");
 canvas.width = 1000;
 canvas.height = 620;
 
+// Phones in portrait get a tall, narrow world so the game fills the screen
+// instead of a tiny landscape strip. Desktop/tablet keep the 1000x620 world.
+const MOBILE_PORTRAIT_QUERY = "(max-width: 599px) and (orientation: portrait)";
+
+function isMobilePortrait() {
+    return window.matchMedia(MOBILE_PORTRAIT_QUERY).matches;
+}
+
+function applyWorldSize() {
+    if (typeof gameRunning !== "undefined" && gameRunning) return;
+
+    const wrapper = canvas.parentElement;
+    let w = 1000;
+    let h = 620;
+
+    if (isMobilePortrait() && wrapper) {
+        const cssW = wrapper.clientWidth || window.innerWidth - 16;
+        const top = wrapper.getBoundingClientRect().top + window.scrollY;
+        const controls = document.querySelector(".mobile-controls");
+        const controlsH = controls ? controls.offsetHeight + 8 : 62;
+        const viewH = window.visualViewport
+            ? window.visualViewport.height
+            : window.innerHeight;
+        const availH = viewH - top - controlsH - 14;
+
+        w = 600;
+        h = Math.round(w * (availH / cssW));
+        h = Math.max(760, Math.min(1000, h));
+    }
+
+    if (canvas.width !== w || canvas.height !== h) {
+        canvas.width = w;
+        canvas.height = h;
+    }
+
+    player.y = canvas.height - 120;
+    player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+}
+
 function resizeGameCanvas() {
     const wrapper = canvas.parentElement;
     if (!wrapper) return;
 
-    const maxWidth = Math.min(wrapper.clientWidth || 1000, 1000);
-    const scale = maxWidth / 1000;
+    applyWorldSize();
 
-    canvas.style.width = "100%";
-    canvas.style.height = `${620 * scale}px`;
+    if (isMobilePortrait()) {
+        wrapper.style.aspectRatio = `${canvas.width} / ${canvas.height}`;
+        canvas.style.width = "100%";
+        canvas.style.height = "100%";
+    } else {
+        wrapper.style.aspectRatio = "";
+        const maxWidth = Math.min(wrapper.clientWidth || 1000, 1000);
+        const scale = maxWidth / 1000;
+        canvas.style.width = "100%";
+        canvas.style.height = `${620 * scale}px`;
+    }
 }
 window.addEventListener("resize", resizeGameCanvas);
-window.addEventListener("orientationchange", resizeGameCanvas);
+window.addEventListener("load", resizeGameCanvas);
+if (window.visualViewport) window.visualViewport.addEventListener("resize", resizeGameCanvas);
+window.addEventListener("orientationchange", () => setTimeout(resizeGameCanvas, 200));
 setTimeout(resizeGameCanvas, 0);
 
 
@@ -139,12 +188,10 @@ function setLeaderboardStatus(message) {
 }
 
 function getEnteredPlayerName() {
-    const entered = (playerNameInput?.value || "")
+    return (playerNameInput?.value || "")
         .trim()
         .replace(/\s+/g, " ")
         .slice(0, 20);
-
-    return entered || "Modak Player";
 }
 
 function escapeLeaderboardName(name) {
@@ -857,7 +904,7 @@ function drawBackground() {
     ctx.beginPath();
 
     ctx.arc(
-        830,
+        canvas.width * 0.83,
         105,
         58,
         0,
@@ -874,19 +921,19 @@ function drawBackground() {
     // ========================================
 
     drawCloud(
-        130,
+        canvas.width * 0.13,
         90,
         1
     );
 
     drawCloud(
-        500,
+        canvas.width * 0.5,
         130,
         0.8
     );
 
     drawCloud(
-        730,
+        canvas.width * 0.73,
         70,
         0.7
     );
@@ -896,7 +943,13 @@ function drawBackground() {
     // TEMPLE
     // ========================================
 
+    const worldDX = (canvas.width - 1000) / 2;
+    const worldDY = canvas.height - 620;
+
+    ctx.save();
+    ctx.translate(worldDX, worldDY);
     drawTemple();
+    ctx.restore();
 
 
     // ========================================
@@ -908,7 +961,7 @@ function drawBackground() {
 
     ctx.fillRect(
         0,
-        555,
+        555 + worldDY,
         canvas.width,
         65
     );
@@ -927,7 +980,7 @@ function drawBackground() {
 
         ctx.fillRect(
             x,
-            555,
+            555 + worldDY,
             35,
             4
         );
@@ -939,13 +992,13 @@ function drawBackground() {
     // DIYAS
     // ========================================
 
-    drawDiya(80, 540);
+    drawDiya(canvas.width * 0.08, 540 + worldDY);
 
-    drawDiya(920, 540);
+    drawDiya(canvas.width * 0.92, 540 + worldDY);
 
-    drawDiya(300, 570);
+    drawDiya(canvas.width * 0.30, 570 + worldDY);
 
-    drawDiya(700, 570);
+    drawDiya(canvas.width * 0.70, 570 + worldDY);
 
 
     // ========================================
@@ -953,13 +1006,13 @@ function drawBackground() {
     // ========================================
 
     drawFlower(
-        50,
-        515
+        canvas.width * 0.05,
+        515 + worldDY
     );
 
     drawFlower(
-        950,
-        515
+        canvas.width * 0.95,
+        515 + worldDY
     );
 
 }
@@ -2571,7 +2624,8 @@ function updateObjects(
         object.y +=
             object.speed *
             delta *
-            getRoundConfig().speedMultiplier;
+            getRoundConfig().speedMultiplier *
+            (canvas.height / 620);
 
 
         if (
