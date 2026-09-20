@@ -1671,183 +1671,238 @@ function drawPlayer() {
 
 
 // ============================================
-// CREATE OBJECT
+// PUJA SEQUENCE · MUSHAK · ECO · VIGHNAS  (contest twists)
 // ============================================
 
-function createObject() {
+const PUJA_SEQUENCE = ["durva", "flower", "modak", "aarti"];
+const PUJA_LABELS = { durva: "Durva", flower: "Flower", modak: "Modak", aarti: "Aarti" };
+const HAZARD_TYPES = ["rock", "log", "plastic", "paint"];       // vighnas
+const SPINNING_TYPES = ["rock", "log", "gold", "divine"];
+const ECO_NOTES = { plastic: "Go plastic-free 🌱", paint: "Use natural colours 🎨" };
 
-    const random =
-        Math.random();
+const ECO_FACTS = [
+    "Clay (shadu mitti) idols dissolve safely in water. Plaster of Paris idols do not, and they linger in lakes for a long time.",
+    "Chemical paints often contain heavy metals like lead and mercury that harm lakes and fish. Turmeric and kumkum make safe natural colours.",
+    "Plastic and thermocol decorations don't decompose for years. Paper, cloth, leaves and flowers make pandals that return to the soil.",
+    "Durva and flowers from the puja can be composted afterwards instead of being thrown into the water.",
+    "Many cities now set up artificial immersion tanks so idols don't need to go into lakes and rivers.",
+    "Some eco-friendly idols have seeds inside, so a plant grows after visarjan."
+];
 
+let pujaStep = 0, pujasCompleted = 0;
+let mushakTime = 0, mushakCooldown = 8;
+let ecoHits = 0, ecoAvoided = 0, ecoFactOffset = 0;
 
-    let type;
-
-
-    if (random < 0.14) {
-
-        type = "obstacle";
-
-    }
-
-    else if (random < 0.20) {
-
-        type = "fire";
-
-    }
-
-    else if (random < 0.25) {
-
-        type = "spinner";
-
-    }
-
-    else if (random < 0.30) {
-
-        type = "log";
-
-    }
-
-    else if (random < 0.35) {
-
-        type = "gold";
-
-    }
-
-    else if (random < 0.39) {
-
-        type = "divine";
-
-    }
-
-    else {
-
-        type = "modak";
-
-    }
-
-
-    objects.push({
-
-        x:
-            35 +
-            Math.random() *
-            (canvas.width - 70),
-
-        y: -60,
-
-        size:
-            type === "spinner"
-                ? 40
-                : type === "log"
-                    ? 42
-                    : 38,
-
-        speed:
-            (
-                175 +
-                Math.random() * 150
-            ) *
-            difficulty,
-
-        type: type,
-
-        rotation:
-            Math.random() *
-            Math.PI * 2
-
-    });
-
+function resetPujaState() {
+    pujaStep = 0; pujasCompleted = 0;
+    mushakTime = 0; mushakCooldown = 8;
+    ecoHits = 0; ecoAvoided = 0;
+    ecoFactOffset = Math.floor(Math.random() * ECO_FACTS.length);
 }
 
+function ecoFact(n) { return ECO_FACTS[(ecoFactOffset + n) % ECO_FACTS.length]; }
 
-// ============================================
-// DRAW OBJECT
-// ============================================
+function showPopup(text) {
+    comboPopup.textContent = text;
+    comboPopup.classList.remove("show");
+    void comboPopup.offsetWidth;
+    comboPopup.classList.add("show");
+}
 
-function drawObject(
-    object
-) {
+function playClearSound() { initAudio(); playSound(330, 0.18, "sine", 0.06); setTimeout(() => playSound(247, 0.22, "sine", 0.05), 90); }
+function playWrongSound() { initAudio(); playSound(200, 0.14, "triangle", 0.05); }
+function playMushakSound() { initAudio(); [700, 900, 1200].forEach((f, i) => setTimeout(() => playSound(f, 0.08, "square", 0.04), i * 70)); }
+function playOfferingSound(step) { initAudio(); playSound([392, 440, 523, 659][step] || 440, 0.12, "triangle", 0.07); }
+
+function updateMushak(delta) {
+    if (mushakTime > 0) mushakTime = Math.max(0, mushakTime - delta);
+    else if (mushakCooldown > 0) mushakCooldown -= delta;
+}
+
+function clampTextX(x) { return Math.max(150, Math.min(canvas.width - 150, x)); }
+
+// ---------- spawn ----------
+function createObject() {
+    let type;
+
+    if (mushakTime <= 0 && mushakCooldown <= 0 && Math.random() < 0.08) {
+        type = "mushak";
+        mushakCooldown = 14;
+    } else {
+        const p = Math.random();
+        if (p < 0.09) type = "rock";
+        else if (p < 0.15) type = "paint";
+        else if (p < 0.21) type = "plastic";
+        else if (p < 0.26) type = "log";
+        else if (p < 0.29) type = "gold";
+        else if (p < 0.32) type = "divine";
+        else if (Math.random() < 0.55) type = PUJA_SEQUENCE[pujaStep];   // helps the player progress
+        else type = PUJA_SEQUENCE[Math.floor(Math.random() * 4)];
+    }
+
+    objects.push({
+        x: 35 + Math.random() * (canvas.width - 70),
+        y: -60,
+        size: 40,
+        speed: (175 + Math.random() * 150) * difficulty,
+        type: type,
+        rotation: Math.random() * Math.PI * 2
+    });
+}
+
+// ---------- drawing ----------
+function drawObject(object) {
+    ctx.save();
+    ctx.translate(object.x, object.y);
+    object.rotation += 0.025;
+
+    // glow behind the offering that is needed next
+    if (object.type === PUJA_SEQUENCE[pujaStep]) {
+        ctx.fillStyle = "rgba(255,255,255,0.4)";
+        ctx.beginPath(); ctx.arc(0, 0, 34, 0, Math.PI * 2); ctx.fill();
+    }
+
+    if (SPINNING_TYPES.includes(object.type)) ctx.rotate(object.rotation);
+    else ctx.rotate(Math.sin(object.rotation * 3) * 0.22);
+
+    drawItemIcon(object.type);
+    ctx.restore();
+}
+
+function drawItemIcon(type) {
+    switch (type) {
+        case "modak": drawModak(); break;
+        case "gold": drawGoldenModak(); break;
+        case "divine": drawDivineModak(); break;
+        case "durva": drawDurva(); break;
+        case "flower": drawHibiscus(); break;
+        case "aarti": drawAartiLamp(); break;
+        case "mushak": drawMushak(); break;
+        case "rock": drawRock(); break;
+        case "log": drawLog(); break;
+        case "plastic": drawPlasticBag(); break;
+        case "paint": drawPaintBucket(); break;
+    }
+}
+
+function drawDurva() {
+    ctx.lineCap = "round";
+    [[-16, -24], [0, -30], [16, -24]].forEach(([tx, ty], i) => {
+        ctx.strokeStyle = i === 1 ? "#1b5e20" : "#2e7d32";
+        ctx.lineWidth = 5;
+        ctx.beginPath(); ctx.moveTo(0, 24); ctx.quadraticCurveTo(tx * 0.3, 0, tx, ty); ctx.stroke();
+    });
+    ctx.fillStyle = "#c1121f"; ctx.fillRect(-8, 8, 16, 5);
+}
+
+function drawHibiscus() {
+    ctx.fillStyle = "#e11d48"; ctx.strokeStyle = "#7f1d1d"; ctx.lineWidth = 2;
+    for (let i = 0; i < 5; i++) {
+        const a = i * Math.PI * 2 / 5 - Math.PI / 2;
+        ctx.beginPath();
+        ctx.ellipse(Math.cos(a) * 13, Math.sin(a) * 13, 11, 8, a, 0, Math.PI * 2);
+        ctx.fill(); ctx.stroke();
+    }
+    ctx.fillStyle = "#ffd60a"; ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI * 2); ctx.fill();
+}
+
+function drawAartiLamp() {
+    ctx.fillStyle = "#fde68a"; ctx.strokeStyle = "#b45309"; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(0, 4, 24, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#9d3b00"; ctx.beginPath(); ctx.ellipse(0, 10, 13, 6, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#ffb703"; ctx.beginPath();
+    ctx.moveTo(0, -18); ctx.quadraticCurveTo(9, -6, 0, 5); ctx.quadraticCurveTo(-9, -6, 0, -18); ctx.fill();
+    ctx.fillStyle = "#fff8dc"; ctx.beginPath(); ctx.ellipse(0, -4, 3, 6, 0, 0, Math.PI * 2); ctx.fill();
+}
+
+function drawMushak() {
+    ctx.shadowBlur = 14; ctx.shadowColor = "#fff000";
+    ctx.fillStyle = "#9ca3af"; ctx.strokeStyle = "#4b5563"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.ellipse(4, 4, 20, 14, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.beginPath(); ctx.ellipse(-14, 2, 11, 9, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#fbcfe8";
+    ctx.beginPath(); ctx.arc(-12, -8, 6, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#111827"; ctx.beginPath(); ctx.arc(-18, 0, 2, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#f472b6"; ctx.beginPath(); ctx.arc(-24, 3, 2.5, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "#f9a8d4"; ctx.lineWidth = 3; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(23, 6); ctx.quadraticCurveTo(38, 6, 34, -8); ctx.stroke();
+}
+
+function drawPlasticBag() {
+    ctx.fillStyle = "rgba(225,241,255,0.92)"; ctx.strokeStyle = "#5b8bb0"; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(-16, -12); ctx.lineTo(16, -12); ctx.lineTo(23, 23); ctx.lineTo(-23, 23); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(-8, -14, 8, Math.PI, 0); ctx.stroke();
+    ctx.beginPath(); ctx.arc(8, -14, 8, Math.PI, 0); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-8, -2); ctx.lineTo(-11, 16); ctx.moveTo(6, 0); ctx.lineTo(10, 14); ctx.stroke();
+}
+
+function drawPaintBucket() {
+    ctx.fillStyle = "#475569"; ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(-21, -8); ctx.lineTo(21, -8); ctx.lineTo(16, 23); ctx.lineTo(-16, 23); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, -8, 18, Math.PI, 0); ctx.stroke();
+    ctx.fillStyle = "#a3e635"; ctx.beginPath(); ctx.ellipse(0, -8, 21, 6, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillRect(-12, -6, 6, 12); ctx.fillRect(7, -6, 5, 8);
+    ctx.fillStyle = "#fff"; ctx.font = "bold 18px Arial"; ctx.textAlign = "center"; ctx.fillText("!", 0, 18);
+}
+
+// ---------- puja tray + Mushak helper (drawn on the canvas) ----------
+function drawPujaTray() {
+    const s = canvas.width < 800 ? 1.3 : 1;
+    const slot = 46 * s, gap = 8 * s, total = 4 * slot + 3 * gap;
+    const x0 = (canvas.width - total) / 2, y0 = 12 * s;
+    const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 180);
 
     ctx.save();
+    ctx.fillStyle = "rgba(60,25,5,0.55)";
+    if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(x0 - 10 * s, y0 - 6 * s, total + 20 * s, slot + 26 * s, 14); ctx.fill(); }
+    else ctx.fillRect(x0 - 10 * s, y0 - 6 * s, total + 20 * s, slot + 26 * s);
 
-    ctx.translate(
-        object.x,
-        object.y
-    );
+    PUJA_SEQUENCE.forEach((type, i) => {
+        const cx = x0 + i * (slot + gap) + slot / 2, cy = y0 + slot / 2;
+        const done = i < pujaStep, current = i === pujaStep;
 
+        ctx.globalAlpha = done ? 0.5 : 1;
+        ctx.fillStyle = current ? "rgba(255,241,184,0.95)" : "rgba(255,255,255,0.25)";
+        ctx.beginPath(); ctx.arc(cx, cy, slot / 2, 0, Math.PI * 2); ctx.fill();
+        if (current) { ctx.strokeStyle = `rgba(255,183,3,${0.5 + pulse * 0.5})`; ctx.lineWidth = 3 + pulse * 2; ctx.stroke(); }
 
-    object.rotation +=
-        0.025;
+        ctx.save(); ctx.translate(cx, cy); ctx.scale(0.62 * s, 0.62 * s); drawItemIcon(type); ctx.restore();
 
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = current ? "#ffd60a" : "#fff";
+        ctx.font = `bold ${11 * s}px Arial`; ctx.textAlign = "center";
+        ctx.fillText(PUJA_LABELS[type], cx, y0 + slot + 12 * s);
+        if (done) { ctx.fillStyle = "#86efac"; ctx.font = `bold ${16 * s}px Arial`; ctx.fillText("✓", cx + slot / 2 - 4 * s, y0 + 8 * s); }
+    });
+    ctx.restore();
+}
 
-    ctx.rotate(
-        object.rotation
-    );
+function drawMushakHelper() {
+    if (mushakTime <= 0) return;
+    const t = performance.now() / 1000;
+    const pcx = player.x + player.width / 2;
 
+    ctx.save();
+    ctx.strokeStyle = "rgba(255,255,255,0.35)"; ctx.lineWidth = 2; ctx.setLineDash([8, 8]);
+    ctx.beginPath(); ctx.arc(pcx, player.y + player.height / 2, 340, 0, Math.PI * 2); ctx.stroke();
+    ctx.setLineDash([]);
 
-    if (
-        object.type ===
-        "modak"
-    ) {
-
-        drawModak();
-
-    }
-
-    else if (
-        object.type ===
-        "gold"
-    ) {
-
-        drawGoldenModak();
-
-    }
-
-    else if (
-        object.type ===
-        "divine"
-    ) {
-
-        drawDivineModak();
-
-    }
-
-    else if (
-        object.type ===
-        "obstacle"
-    ) {
-
-        drawRock();
-
-    }
-
-    else if (
-        object.type ===
-        "fire"
-    ) {
-
-        drawFirePot();
-
-    }
-
-    else if (
-        object.type ===
-        "log"
-    ) {
-
-        drawLog();
-
-    }
-
-    else {
-
-        drawSpinner();
-
-    }
-
-
+    const side = player.x + player.width + 50 < canvas.width ? 1 : -1;
+    ctx.translate(pcx + side * 78, player.y + player.height - 4 + Math.sin(t * 12) * 3);
+    ctx.scale(-side * 0.85, 0.85);
+    drawMushak();
     ctx.restore();
 
+    ctx.save();
+    ctx.fillStyle = "rgba(60,25,5,0.75)";
+    const w = 170, x = canvas.width - w - 12, y = 12;
+    if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(x, y, w, 30, 15); ctx.fill(); } else ctx.fillRect(x, y, w, 30);
+    ctx.fillStyle = "#fff"; ctx.font = "bold 14px Arial"; ctx.textAlign = "center";
+    ctx.fillText("🐭 MUSHAK HELPS " + mushakTime.toFixed(1) + "s", x + w / 2, y + 20);
+    ctx.restore();
 }
 
 
@@ -2604,225 +2659,111 @@ function movePlayer(
 // UPDATE OBJECTS
 // ============================================
 
-function updateObjects(
-    delta
-) {
+function updateObjects(delta) {
+    for (let i = objects.length - 1; i >= 0; i--) {
+        const object = objects[i];
 
-    for (
-        let i =
-            objects.length - 1;
+        // Mushak sniffs out the right offering and golden treats
+        if (mushakTime > 0 && (object.type === PUJA_SEQUENCE[pujaStep] || object.type === "gold" || object.type === "divine")) {
+            const dx = player.x + player.width / 2 - object.x;
+            const dy = player.y + player.height / 2 - object.y;
+            const dist = Math.hypot(dx, dy);
+            if (dist < 340 && dist > 1) {
+                object.x += dx / dist * 480 * delta;
+                object.y += dy / dist * 480 * delta;
+            }
+        }
 
-        i >= 0;
+        object.y += object.speed * delta * getRoundConfig().speedMultiplier * (canvas.height / 620);
 
-        i--
-    ) {
+        if (collision(player, object)) {
 
-        const object =
-            objects[i];
-
-
-        object.y +=
-            object.speed *
-            delta *
-            getRoundConfig().speedMultiplier *
-            (canvas.height / 620);
-
-
-        if (
-            collision(
-                player,
-                object
-            )
-        ) {
-
-            // ================================
-            // OBSTACLE
-            // ================================
-
-            if (
-                object.type ===
-                "obstacle" ||
-                object.type ===
-                "fire" ||
-                object.type ===
-                "spinner" ||
-                object.type ===
-                "log"
-            ) {
-
-                if (
-                    player.invincible <= 0
-                ) {
-
+            // ---- VIGHNA: Ganesha clears the obstacle (costs one blessing) ----
+            if (HAZARD_TYPES.includes(object.type)) {
+                if (player.invincible <= 0) {
                     lives--;
-
                     combo = 0;
-
-                    player.invincible =
-                        1.2;
-
-                    screenShake =
-                        12;
-
-                    livesEl.textContent =
-                        lives;
-
-                    comboEl.textContent =
-                        combo;
-
-                    createParticles(
-                        object.x,
-                        object.y,
-                        "hit"
-                    );
-
-                    playHitSound();
-
-
-                    if (
-                        lives <= 0
-                    ) {
-
-                        endGame();
-
-                        return;
-
-                    }
-
+                    player.invincible = 1.2;
+                    livesEl.textContent = lives;
+                    comboEl.textContent = combo;
+                    createParticles(object.x, object.y, "clear");
+                    playClearSound();
+                    if (ECO_NOTES[object.type]) ecoHits++;
+                    addFloatingText(clampTextX(player.x + player.width / 2), player.y - 20,
+                        ECO_NOTES[object.type] || "Vighna cleared 🙏");
+                    if (lives <= 0) { endGame(); return; }
                 }
-
-
-                objects.splice(
-                    i,
-                    1
-                );
-
+                objects.splice(i, 1);
                 continue;
-
             }
 
-
-            // ================================
-            // COLLECTIBLE
-            // ================================
-
-            let points = 10;
-
-
-            if (
-                object.type ===
-                "gold"
-            ) {
-
-                points = 50;
-
+            // ---- MUSHAK power-up ----
+            if (object.type === "mushak") {
+                mushakTime = 5;
+                playMushakSound();
+                createParticles(object.x, object.y);
+                addFloatingText(clampTextX(object.x), object.y, "🐭 Mushak helps!");
+                objects.splice(i, 1);
+                continue;
             }
 
-
-            if (
-                object.type ===
-                "divine"
-            ) {
-
-                points = 100;
-
+            // ---- WRONG OFFERING: breaks the combo, no blessing lost ----
+            const isOffering = PUJA_SEQUENCE.includes(object.type);
+            if (isOffering && object.type !== PUJA_SEQUENCE[pujaStep]) {
+                combo = 0;
+                comboEl.textContent = combo;
+                addFloatingText(clampTextX(object.x), object.y, "Offer " + PUJA_LABELS[PUJA_SEQUENCE[pujaStep]] + " first");
+                playWrongSound();
+                objects.splice(i, 1);
+                continue;
             }
 
-
-            if (
-                blessingActive
-            ) {
-
-                points *= 2;
-
-            }
-
+            // ---- CORRECT OFFERING / GOLDEN TREATS ----
+            let points = object.type === "gold" ? 50 : object.type === "divine" ? 100 : 10;
+            if (blessingActive) points *= 2;
 
             score += points;
-
             combo++;
+            scoreEl.textContent = score;
+            comboEl.textContent = combo;
 
+            createParticles(object.x, object.y);
+            addFloatingText(clampTextX(object.x), object.y, "+" + points);
 
-            scoreEl.textContent =
-                score;
-
-            comboEl.textContent =
-                combo;
-
-
-            playCollectSound(
-                object.type
-            );
-
-
-            createParticles(
-                object.x,
-                object.y
-            );
-
-
-            addFloatingText(
-                object.x,
-                object.y,
-                "+" + points
-            );
-
-
-            // Combo feedback
-
-            if (
-                combo > 1 &&
-                combo % 5 === 0
-            ) {
-
-                showCombo(
-                    combo
-                );
-
+            if (isOffering) {
+                playOfferingSound(pujaStep);
+                pujaStep++;
+            } else {
+                playCollectSound(object.type);
             }
 
+            if (combo > 1 && combo % 5 === 0) showCombo(combo);
 
-            // Blessing Mode
+            if (pujaStep >= PUJA_SEQUENCE.length) {
+                pujaStep = 0;
+                pujasCompleted++;
+                const bonus = blessingActive ? 200 : 100;
+                score += bonus;
+                scoreEl.textContent = score;
+                showPopup("🙏 PUJA COMPLETE! +" + bonus);
+                playBlessingSound();
+            }
 
-            if (
-                combo >= 10 &&
-                !blessingActive
-            ) {
-
+            if (combo >= 10 && !blessingActive) {
                 activateBlessing();
-
                 combo = 0;
-
-                comboEl.textContent =
-                    combo;
-
+                comboEl.textContent = combo;
             }
 
-
-            objects.splice(
-                i,
-                1
-            );
-
+            objects.splice(i, 1);
             continue;
-
         }
 
-
-        if (
-            object.y >
-            canvas.height + 70
-        ) {
-
-            objects.splice(
-                i,
-                1
-            );
-
+        if (object.y > canvas.height + 70) {
+            if (ECO_NOTES[object.type]) ecoAvoided++;
+            objects.splice(i, 1);
         }
-
     }
-
 }
 
 
@@ -3192,6 +3133,8 @@ function gameLoop(
 
     updateBlessing(delta);
 
+    updateMushak(delta);
+
     updateTimer(delta);
 
 
@@ -3217,8 +3160,9 @@ function gameLoop(
 
     drawBackground();
 
-    drawPlayer();
+    drawPujaTray();
 
+    drawPlayer();
 
     objects.forEach(
         drawObject
@@ -3228,6 +3172,8 @@ function gameLoop(
     drawParticles();
 
     drawFloatingTexts();
+
+    drawMushakHelper();
 
 
     ctx.restore();
@@ -3275,6 +3221,8 @@ function showRoundTransition() {
             <h2>Round ${currentRound}</h2>
             <div class="round-level">${config.label}</div>
             <p>The festival rush is getting faster!</p>
+            <div class="eco-fact"><b>🌱 Eco-friendly Ganesha</b><span>${ecoFact(currentRound - 2)}</span></div>
+            <div class="run-stats">🙏 Pujas completed: ${pujasCompleted} · ♻️ Plastic &amp; paint dodged: ${ecoAvoided}</div>
             <button id="startNextRound">CONTINUE ▶️</button>
         </div>
     `;
@@ -3488,6 +3436,7 @@ if (window.PointerEvent) {
 }
 
 async function startGame() {
+    resetPujaState();
     const enteredName = getEnteredPlayerName();
 
     if (!enteredName) {
@@ -3716,6 +3665,7 @@ function handleCancelExit() {
 
 
 function exitGame() {
+    resetPujaState();
     roundTransitionActive = false;
     document.getElementById("roundTransition")?.remove();
     stopFestivalMusic();
@@ -3799,6 +3749,11 @@ async function endGame() {
     }
 
     finalScoreEl.textContent = score;
+
+    const ecoFactEl = document.getElementById("ecoFact");
+    if (ecoFactEl) ecoFactEl.innerHTML = "<b>🌱 Eco-friendly Ganesha</b><span>" + ecoFact(2) + "</span>";
+    const runStatsEl = document.getElementById("runStats");
+    if (runStatsEl) runStatsEl.textContent = "🙏 Pujas completed: " + pujasCompleted + " · ♻️ Plastic & paint dodged: " + ecoAvoided + " · hit: " + ecoHits;
 
     if (resultPlayer) {
         resultPlayer.textContent = currentPlayerName
