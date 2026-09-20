@@ -24,7 +24,7 @@
 
 <section class="hud">
     <div class="stat"><span>🍬</span><div><small>SCORE</small><strong id="score">0</strong></div></div>
-    <div class="stat"><span>❤️</span><div><small>LIVES</small><strong id="lives">3</strong></div></div>
+    <div class="stat"><span>🪷</span><div><small>BLESSINGS</small><strong id="lives">3</strong></div></div>
     <div class="stat"><span>🔥</span><div><small>COMBO</small><strong id="combo">0</strong></div></div>
     <div class="stat"><span>⏱️</span><div><small>TIME</small><strong id="timer">60</strong></div></div>
     <div class="stat"><span>🏆</span><div><small>BEST</small><strong id="highScore">0</strong></div></div>
@@ -46,11 +46,11 @@
             <div class="ganesha-icon">🐘</div>
             <div class="om-symbol">ॐ</div>
             <h2>Modak Rush</h2>
-            <p>Help Ganesha collect divine modaks and survive three increasingly fast festival rounds.</p>
+            <p>Help Ganesha make his puja offerings in the right order and clear every vighna across three festival rounds.</p>
 
             <div class="instructions">
                 <div><b>← →</b><span>Move</span></div>
-                <div><b>👆</b><span>Drag / Swipe</span></div>
+                <div><b>👆</b><span>Swipe</span></div>
                 <div><b>SPACE</b><span>Pause</span></div>
             </div>
 
@@ -64,17 +64,19 @@
             </div>
 
             <div class="game-guide">
-                <h3>🎮 Know Your Icons</h3>
+                <h3>🙏 The Puja Sequence</h3>
+                <div class="puja-order">🌿 Durva → 🌺 Flower → 🍬 Modak → 🪔 Aarti</div>
+                <small class="puja-note">Collect offerings <b>in this order</b>. A wrong offering breaks your combo (no blessing lost). Finish all four for a <b>+100 Puja bonus</b>!</small>
                 <div class="icon-grid">
-                    <div class="guide-item"><span>🍬</span><b>+10</b></div>
                     <div class="guide-item"><span>⭐</span><b>+50</b></div>
                     <div class="guide-item"><span>ॐ</span><b>+100</b></div>
-                    <div class="guide-item bonus"><span>🌺</span><b>Bonus</b></div>
-                    <div class="guide-item danger"><span>🪨</span><b>Avoid</b></div>
-                    <div class="guide-item danger"><span>🔥</span><b>Avoid</b></div>
-                    <div class="guide-item danger"><span>🌀</span><b>Avoid</b></div>
-                    <div class="guide-item danger"><span>🪵</span><b>Avoid</b></div>
+                    <div class="guide-item bonus"><span>🐭</span><b>Mushak helps 5s</b></div>
+                    <div class="guide-item danger"><span>🪨</span><b>Vighna</b></div>
+                    <div class="guide-item danger"><span>🪵</span><b>Vighna</b></div>
+                    <div class="guide-item danger"><span>🛍️</span><b>Plastic</b></div>
+                    <div class="guide-item danger"><span>🎨</span><b>Chem. paint</b></div>
                 </div>
+                <small class="puja-note">Vighnas (obstacles) cost one blessing when Ganesha clears them. Dodge them to keep your blessings!</small>
             </div>
 
             <div class="player-profile">
@@ -98,8 +100,8 @@
                 <ol id="leaderboardList" class="leaderboard-list"></ol>
             </div>
 
-            <p class="tip">SPACE = PAUSE / RESUME · Drag or swipe Ganesha to move</p>
-<p class="tip">Survive the round with at least one life to advance!</p>
+            <p class="tip">SPACE = PAUSE / RESUME · Swipe or use arrow keys to move</p>
+<p class="tip">Keep at least one blessing to advance to the next round!</p>
         </div>
     </div>
 
@@ -153,6 +155,8 @@
             <div class="score-label">FINAL SCORE</div>
             <div class="final-score" id="finalScore">0</div>
             <div class="result-player" id="resultPlayer"></div>
+            <div id="runStats" class="run-stats"></div>
+            <div id="ecoFact" class="eco-fact"></div>
             <div id="newRecord" class="new-record hidden">🏆 NEW HIGH SCORE!</div>
             <button id="restartButton">PLAY AGAIN 🔄</button>
             <button id="viewLeaderboardButton" class="secondary-action" type="button">🏆 VIEW LEADERBOARD</button>
