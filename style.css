@@ -987,3 +987,31 @@ footer {
 .game-wrapper:has(#exitConfirm:not(.hidden)) .game-controls {
     display: none;
 }
+
+
+/* ===== Contest twists: puja sequence + eco layer ===== */
+.puja-order {
+    font-weight: 800;
+    font-size: 1.02rem;
+    color: #7c2d12;
+    background: #fff1b8;
+    border: 2px dashed #f59e0b;
+    border-radius: 14px;
+    padding: 9px 8px;
+    margin: 8px 0;
+}
+.puja-note { display: block; color: #5b3924; line-height: 1.4; margin: 6px 0 10px; }
+.eco-fact {
+    margin: 12px 0 6px;
+    padding: 10px 12px;
+    text-align: left;
+    background: #ecfdf3;
+    border: 2px solid #86efac;
+    border-radius: 14px;
+    color: #14532d;
+    font-size: .88rem;
+    line-height: 1.4;
+}
+.eco-fact b { display: block; margin-bottom: 3px; }
+.eco-fact:empty { display: none; }
+.run-stats { font-size: .82rem; font-weight: 700; color: #5b3924; margin: 6px 0; }
