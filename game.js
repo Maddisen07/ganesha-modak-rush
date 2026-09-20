@@ -2619,42 +2619,60 @@ function updateObjects(
         ) {
 
             // ================================
-            // ALL OBSTACLES — SAFE / BLOCKED
+            // ALL OBSTACLES — DIVINE PROTECTION
             // ================================
+            // Obstacles do not visually hurt Ganesha.
+            // Divine protection blocks the obstacle, but each
+            // blocked obstacle consumes one Blessing (life).
+            // This keeps the game challenging without a hurt animation.
+            const collectibleTypes = [
+                "modak",
+                "gold",
+                "divine"
+            ];
 
-            // Every non-collectible hazard is now harmless.
-            // Ganesha blocks/deflects it instead of taking damage.
-            // This applies to logs, fire pots, regular obstacles,
-            // and spinners. No life is lost and no hurt animation
-            // or hit sound is triggered.
-            if (
-                object.type === "log" ||
-                object.type === "fire" ||
-                object.type === "obstacle" ||
-                object.type === "spinner"
-            ) {
+            if (!collectibleTypes.includes(object.type)) {
 
-                player.y = Math.max(
-                    80,
-                    player.y - 14
-                );
+                if (player.invincible <= 0) {
+                    // Consume one Blessing
+                    lives = Math.max(0, lives - 1);
+                    combo = 0;
 
-                createParticles(
-                    object.x,
-                    object.y,
-                    object.type === "fire"
-                        ? "fire"
-                        : object.type === "log"
-                            ? "log"
-                            : "blocked"
-                );
+                    // Brief protection window prevents multiple
+                    // overlapping obstacles from consuming all lives.
+                    player.invincible = 0.8;
 
-                addFloatingText(
-                    object.x,
-                    object.y - 25,
-                    "BLOCKED!"
-                );
+                    // No damage shake / hurt effect.
+                    screenShake = 0;
 
+                    livesEl.textContent = lives;
+                    comboEl.textContent = combo;
+
+                    // Golden divine-protection effect
+                    createParticles(
+                        object.x,
+                        object.y,
+                        "blocked"
+                    );
+
+                    addFloatingText(
+                        object.x,
+                        object.y - 25,
+                        "🛡️ BLOCKED! -1 BLESSING"
+                    );
+
+                    // Keep Ganesha moving safely forward.
+                    player.y = Math.max(80, player.y - 8);
+
+                    if (lives <= 0) {
+                        lives = 0;
+                        livesEl.textContent = lives;
+                        endGame();
+                        return;
+                    }
+                }
+
+                // Obstacle is removed after divine protection blocks it.
                 objects.splice(i, 1);
                 continue;
             }
