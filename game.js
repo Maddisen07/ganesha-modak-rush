@@ -2426,7 +2426,10 @@ function drawParticles() {
                         : particle.type ===
                             "fire"
                             ? "#ff6b00"
-                            : "#ffb703";
+                            : particle.type ===
+                                "blocked"
+                                ? "#ffd166"
+                                : "#ffb703";
 
 
             ctx.beginPath();
@@ -2616,14 +2619,20 @@ function updateObjects(
         ) {
 
             // ================================
-            // LOG — SAFE / DEFLECTED
+            // ALL OBSTACLES — SAFE / BLOCKED
             // ================================
 
-            // Logs no longer damage Ganesha. Instead, Ganesha
-            // harmlessly deflects them with a small bounce and
-            // a positive visual effect, so it does not look like
-            // Ganesha has been hurt.
-            if (object.type === "log") {
+            // Every non-collectible hazard is now harmless.
+            // Ganesha blocks/deflects it instead of taking damage.
+            // This applies to logs, fire pots, regular obstacles,
+            // and spinners. No life is lost and no hurt animation
+            // or hit sound is triggered.
+            if (
+                object.type === "log" ||
+                object.type === "fire" ||
+                object.type === "obstacle" ||
+                object.type === "spinner"
+            ) {
 
                 player.y = Math.max(
                     80,
@@ -2633,7 +2642,11 @@ function updateObjects(
                 createParticles(
                     object.x,
                     object.y,
-                    "log"
+                    object.type === "fire"
+                        ? "fire"
+                        : object.type === "log"
+                            ? "log"
+                            : "blocked"
                 );
 
                 addFloatingText(
@@ -2644,100 +2657,6 @@ function updateObjects(
 
                 objects.splice(i, 1);
                 continue;
-            }
-
-
-            // ================================
-            // FIRE POT — SAFE / DEFLECTED
-            // ================================
-
-            // Fire pots no longer damage Ganesha. When touched,
-            // they are treated like a harmless blocked obstacle
-            // so the collision does not look like Ganesha is hurt.
-            if (object.type === "fire") {
-
-                player.y = Math.max(
-                    80,
-                    player.y - 12
-                );
-
-                createParticles(
-                    object.x,
-                    object.y,
-                    "fire"
-                );
-
-                addFloatingText(
-                    object.x,
-                    object.y - 25,
-                    "BLOCKED!"
-                );
-
-                objects.splice(i, 1);
-                continue;
-            }
-
-
-            // ================================
-            // OBSTACLE
-            // ================================
-
-            if (
-                object.type ===
-                "obstacle" ||
-                object.type ===
-                "spinner"
-            ) {
-
-                if (
-                    player.invincible <= 0
-                ) {
-
-                    lives--;
-
-                    combo = 0;
-
-                    player.invincible =
-                        1.2;
-
-                    screenShake =
-                        12;
-
-                    livesEl.textContent =
-                        lives;
-
-                    comboEl.textContent =
-                        combo;
-
-                    createParticles(
-                        object.x,
-                        object.y,
-                        "hit"
-                    );
-
-                    playHitSound();
-
-
-                    if (
-                        lives <= 0
-                    ) {
-
-                        endGame();
-
-                        return;
-
-                    }
-
-                }
-
-
-                objects.splice(
-                    i,
-                    1
-                );
-
-                continue;
-
             }
 
 
