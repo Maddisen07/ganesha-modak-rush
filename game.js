@@ -2423,7 +2423,10 @@ function drawParticles() {
                     : particle.type ===
                         "log"
                         ? "#8b5a2b"
-                        : "#ffb703";
+                        : particle.type ===
+                            "fire"
+                            ? "#ff6b00"
+                            : "#ffb703";
 
 
             ctx.beginPath();
@@ -2645,14 +2648,43 @@ function updateObjects(
 
 
             // ================================
+            // FIRE POT — SAFE / DEFLECTED
+            // ================================
+
+            // Fire pots no longer damage Ganesha. When touched,
+            // they are treated like a harmless blocked obstacle
+            // so the collision does not look like Ganesha is hurt.
+            if (object.type === "fire") {
+
+                player.y = Math.max(
+                    80,
+                    player.y - 12
+                );
+
+                createParticles(
+                    object.x,
+                    object.y,
+                    "fire"
+                );
+
+                addFloatingText(
+                    object.x,
+                    object.y - 25,
+                    "BLOCKED!"
+                );
+
+                objects.splice(i, 1);
+                continue;
+            }
+
+
+            // ================================
             // OBSTACLE
             // ================================
 
             if (
                 object.type ===
                 "obstacle" ||
-                object.type ===
-                "fire" ||
                 object.type ===
                 "spinner"
             ) {
