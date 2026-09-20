@@ -40,3 +40,30 @@ grant insert, update on public.leaderboard to authenticated;
 
 create index if not exists leaderboard_score_idx
 on public.leaderboard (high_score desc);
+
+
+-- Case-insensitive unique player names.
+-- This means "maddy" and "MADDY" are treated as the same name.
+-- Run this after the table exists. If you already have duplicate names
+-- differing only by case, resolve those rows first before creating the index.
+create unique index if not exists leaderboard_player_name_lower_uidx
+on public.leaderboard (lower(player_name));
+
+-- Server-side availability check used by the game before a player starts.
+-- The current user's own name is considered available, so replaying with
+-- the same name is allowed.
+create or replace function public.is_player_name_available(p_name text)
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+    select not exists (
+        select 1
+        from public.leaderboard
+        where lower(trim(player_name)) = lower(trim(p_name))
+          and id <> (select auth.uid())
+    );
+$$;
+
+grant execute on function public.is_player_name_available(text) to anon, authenticated;
