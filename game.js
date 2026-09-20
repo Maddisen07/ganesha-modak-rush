@@ -2420,7 +2420,10 @@ function drawParticles() {
                 particle.type ===
                 "hit"
                     ? "#c1121f"
-                    : "#ffb703";
+                    : particle.type ===
+                        "log"
+                        ? "#8b5a2b"
+                        : "#ffb703";
 
 
             ctx.beginPath();
@@ -2610,6 +2613,38 @@ function updateObjects(
         ) {
 
             // ================================
+            // LOG — SAFE / DEFLECTED
+            // ================================
+
+            // Logs no longer damage Ganesha. Instead, Ganesha
+            // harmlessly deflects them with a small bounce and
+            // a positive visual effect, so it does not look like
+            // Ganesha has been hurt.
+            if (object.type === "log") {
+
+                player.y = Math.max(
+                    80,
+                    player.y - 14
+                );
+
+                createParticles(
+                    object.x,
+                    object.y,
+                    "log"
+                );
+
+                addFloatingText(
+                    object.x,
+                    object.y - 25,
+                    "BLOCKED!"
+                );
+
+                objects.splice(i, 1);
+                continue;
+            }
+
+
+            // ================================
             // OBSTACLE
             // ================================
 
@@ -2619,9 +2654,7 @@ function updateObjects(
                 object.type ===
                 "fire" ||
                 object.type ===
-                "spinner" ||
-                object.type ===
-                "log"
+                "spinner"
             ) {
 
                 if (
