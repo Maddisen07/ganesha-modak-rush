@@ -681,18 +681,12 @@ footer {
 }
 
 
-
 /* ============================================
-   MOBILE GAMEPLAY POLISH — FINAL
+   MOBILE GAMEPLAY POLISH
    ============================================ */
-
 @media (max-width: 599px) {
     html, body {
-        width: 100%;
         min-height: 100%;
-        margin: 0;
-        padding: 0;
-        overflow-x: hidden;
     }
 
     body {
@@ -701,24 +695,19 @@ footer {
 
     .app {
         width: 100%;
-        max-width: 520px;
-        margin: 0 auto;
-        padding: max(8px, env(safe-area-inset-top))
-                 8px
-                 max(8px, env(safe-area-inset-bottom));
+        padding: max(6px, env(safe-area-inset-top)) 6px max(8px, env(safe-area-inset-bottom));
     }
 
     header {
-        gap: 4px;
-        padding: 2px 0 6px;
-        text-align: left;
+        gap: 5px;
+        padding: 5px 2px 7px;
+        text-align: center;
         align-items: center;
     }
 
     .brand {
-        width: 100%;
         justify-content: center;
-        gap: 8px;
+        gap: 7px;
     }
 
     .brand-icon {
@@ -726,41 +715,34 @@ footer {
     }
 
     h1 {
-        font-size: 21px;
-        line-height: 1.05;
+        font-size: 20px;
+        line-height: 1.1;
     }
 
     header p {
         font-size: 10px;
-        margin: 0;
     }
 
-    /* Saves vertical space so the play area can be as tall as possible */
     .festival-badge {
-        display: none;
+        align-self: center;
+        padding: 5px 9px;
+        font-size: 9px;
     }
 
-    /* All 5 stats on a single compact row */
     .hud {
-        display: grid;
         grid-template-columns: repeat(5, minmax(0, 1fr));
-        gap: 5px;
+        gap: 4px;
         margin: 2px 0 6px;
     }
 
     .stat {
         min-width: 0;
-        min-height: 50px;
-        padding: 4px 1px;
-        border-radius: 12px;
+        min-height: 48px;
         flex-direction: column;
         justify-content: center;
-        align-items: center;
-        gap: 1px;
-    }
-
-    .stat > div {
-        text-align: center;
+        gap: 0;
+        padding: 4px 2px;
+        border-radius: 10px;
     }
 
     .stat > span {
@@ -770,104 +752,76 @@ footer {
 
     .stat small {
         font-size: 7px;
-        line-height: 8px;
+        line-height: 9px;
     }
 
     .stat strong {
-        font-size: 14px;
+        font-size: 13px;
         line-height: 15px;
     }
 
     .game-wrapper {
+        border-radius: 12px;
         width: 100%;
-        height: auto;
-        aspect-ratio: 600 / 860; /* JS sets the exact ratio to fit the screen */
-        border-radius: 14px;
-        overflow: hidden;
     }
 
     #gameCanvas {
+        width: 100%;
+        height: auto;
         display: block;
-        width: 100% !important;
-        height: 100% !important;
-        max-width: none !important;
-        margin: 0 !important;
         touch-action: none;
         -webkit-user-select: none;
         user-select: none;
-        -webkit-touch-callout: none;
     }
 
     .game-controls {
-        top: 8px;
-        right: 8px;
+        top: 7px;
+        right: 7px;
     }
 
     .game-controls button {
-        width: 43px;
-        height: 43px;
+        width: 42px;
+        height: 42px;
         font-size: 17px;
     }
 
     .round-badge {
-        top: 8px;
-        left: 8px;
-        padding: 6px 9px;
+        top: 7px;
+        left: 7px;
+        padding: 5px 8px;
         font-size: 9px;
     }
 
     .mobile-controls {
-        display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 8px;
-        width: 100%;
-        margin: 8px 0 0;
+        gap: 7px;
+        margin: 7px 0 2px;
     }
 
     .mobile-controls button {
-        min-height: 52px;
-        border-radius: 14px;
-        font-size: 24px;
+        min-height: 48px;
+        border-radius: 13px;
+        font-size: 21px;
         touch-action: manipulation;
-        user-select: none;
-        -webkit-user-select: none;
-    }
-
-    .mobile-controls button:active {
-        transform: scale(.97);
     }
 
     footer {
         display: none;
     }
 
-    .game-section {
-        margin-bottom: 0;
-    }
-
     .screen {
-        padding: 10px 8px;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-        place-items: start center;
+        padding: 8px;
     }
 
     .card {
         width: min(96%, 430px);
-        max-height: none;
-        margin: 0 auto;
-        padding: 16px 12px;
-        border-radius: 19px;
-    }
-
-    #startScreen .card {
-        min-height: 0;
-        margin-top: 2px;
-        margin-bottom: 10px;
+        max-height: 96%;
+        padding: 15px 11px;
+        border-radius: 18px;
     }
 
     .ganesha-icon {
-        font-size: 44px;
+        font-size: 45px;
     }
 
     .card h2 {
@@ -910,7 +864,6 @@ footer {
     }
 
     .player-profile {
-        width: 100%;
         margin: 10px auto 7px;
     }
 
@@ -919,28 +872,11 @@ footer {
         font-size: 15px;
     }
 
-    .leaderboard-panel {
-        display: block !important;
-        width: 100%;
-        margin: 10px auto 0;
-        padding: 10px;
-    }
-
-    .leaderboard-list {
-        max-height: 170px;
-        overflow-y: auto;
-    }
-
-    .leaderboard-row {
-        min-height: 32px;
-        padding: 5px 6px;
-    }
-
     #startButton,
     #restartButton,
     .pause-buttons button,
     .leaderboard-modal-actions button {
-        min-height: 45px;
+        min-height: 44px;
         padding: 9px 12px;
         margin-top: 7px;
     }
@@ -950,68 +886,3 @@ footer {
         margin: 4px 0;
     }
 }
-
-@media (max-width: 380px) {
-    .app {
-        padding-inline: 6px;
-    }
-
-    .hud {
-        gap: 4px;
-    }
-
-    .stat {
-        min-height: 46px;
-    }
-
-    .stat > span {
-        font-size: 13px;
-    }
-
-    .stat strong {
-        font-size: 13px;
-    }
-
-    .mobile-controls button {
-        min-height: 50px;
-        font-size: 22px;
-    }
-}
-
-
-/* Hide the in-game pause button while a menu / overlay is open */
-.game-wrapper:has(#startScreen:not(.hidden)) .game-controls,
-.game-wrapper:has(#gameOverScreen:not(.hidden)) .game-controls,
-.game-wrapper:has(#leaderboardOverlay:not(.hidden)) .game-controls,
-.game-wrapper:has(#pauseScreen:not(.hidden)) .game-controls,
-.game-wrapper:has(#exitConfirm:not(.hidden)) .game-controls {
-    display: none;
-}
-
-
-/* ===== Contest twists: puja sequence + eco layer ===== */
-.puja-order {
-    font-weight: 800;
-    font-size: 1.02rem;
-    color: #7c2d12;
-    background: #fff1b8;
-    border: 2px dashed #f59e0b;
-    border-radius: 14px;
-    padding: 9px 8px;
-    margin: 8px 0;
-}
-.puja-note { display: block; color: #5b3924; line-height: 1.4; margin: 6px 0 10px; }
-.eco-fact {
-    margin: 12px 0 6px;
-    padding: 10px 12px;
-    text-align: left;
-    background: #ecfdf3;
-    border: 2px solid #86efac;
-    border-radius: 14px;
-    color: #14532d;
-    font-size: .88rem;
-    line-height: 1.4;
-}
-.eco-fact b { display: block; margin-bottom: 3px; }
-.eco-fact:empty { display: none; }
-.run-stats { font-size: .82rem; font-weight: 700; color: #5b3924; margin: 6px 0; }
